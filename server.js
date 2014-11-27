@@ -44,18 +44,26 @@ app.post('/upload', function(req, res) {
 app.post('/askquestion', function(req, res) {
 	var question = req.body;
 		console.log(req.body);
-	models.Question.create({ title: question.title, description: question.description, codeSnippet: question.codeSnippet, githubRepo: question.githubRepo, votes: question.votes });
+	models.Question.create({ title: question.title,
+													 description: question.description, 
+													 codeSnippet: question.codeSnippet, 
+													 githubRepo: question.githubRepo, 
+													 votes: question.votes 
+													});
+});
+
+app.get('/allquestions', function(req, res) {
+	models.Question.all().complete(function(err, questions) {
+		res.send(questions);
+	});
 });
 
 app.get('/question/:id', function(req, res) {
 	var id = req.params.id;
-	console.log(id);
-	var currentQuestion = models.Question.find( {where:{id: id}} ).complete(function(err, question) {
-		console.log(question.title);
-		console.log(question.description);
-	});
-	var questionReplies = models.Reply.find( {where: {QuestionId: id}} ).complete(function(err, reply) {
-		console.log(reply.link);
+	models.Question.find( {where:{id: id}} ).complete(function(err, question) {
+		models.Reply.findAll( {where: {QuestionId: id}} ).complete(function(err, reply) {
+			res.send({"question": question, "reply": reply});
+		});
 	});
 
 });
@@ -71,7 +79,12 @@ app.post('/postreply/:id', function(req, res) {
 app.post('/newuser', function(req, res) {
 	var user = req.body;
 		console.log(req.body);
-	models.User.create({username: user.username, firstname: user.firstname, lastname: user.lastname, email: user.email, password: user.password });
+	models.User.create({ username: user.username, 
+											 firstname: user.firstname, 
+											 lastname: user.lastname, 
+											 email: user.email, 
+											 password: user.password 
+											});
 });
 
 
