@@ -9,6 +9,12 @@ var busboy = require('connect-busboy');
 var s3 = new AWS.S3();
 var keyName = "interface.js"
 
+app.use(function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  next();
+})
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
