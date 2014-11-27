@@ -71,7 +71,7 @@ app.post('/postreply/:id', function(req, res) {
 app.post('/newuser', function(req, res) {
 	var user = req.body;
 		console.log(req.body);
-	models.User.create({username: user.username, firstname: user.firstmame, lastname: user.lastname, email: user.email, password: user.password });
+	models.User.create({username: user.username, firstname: user.firstname, lastname: user.lastname, email: user.email, password: user.password });
 });
 
 
