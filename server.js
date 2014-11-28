@@ -49,12 +49,12 @@ app.post('/upload', function(req, res) {
 
 app.post('/askquestion', function(req, res) {
 	var question = req.body;
-		console.log(req.body);
 	models.Question.create({ title: question.title,
 													 description: question.description, 
 													 codeSnippet: question.codeSnippet, 
 													 githubRepo: question.githubRepo, 
-													 votes: question.votes 
+													 votes: question.votes,
+													 UserId: question.userId,
 													});
 });
 
@@ -64,8 +64,8 @@ app.get('/allquestions', function(req, res) {
 	});
 });
 
-app.get('/question/:id', function(req, res) {
-	var id = req.params.id;
+app.get('/question/:questionid', function(req, res) {
+	var id = req.params.questionid;
 	models.Question.find( {where:{id: id}} ).complete(function(err, question) {
 		models.Reply.findAll( {where: {QuestionId: id}} ).complete(function(err, reply) {
 			res.send({"question": question, "reply": reply});
@@ -74,17 +74,18 @@ app.get('/question/:id', function(req, res) {
 
 });
 
-app.post('/postreply/:id', function(req, res) {
+app.post('/postreply/:questionid', function(req, res) {
 	var reply = req.body;
-	var id = req.params.id;
-	models.Reply.create({ link: req.body.link, QuestionId: id, description: reply.description }).complete(function(err, reply) {
-		console.log(reply.link);
-	});
+	var id = req.params.questionid;
+	models.Reply.create({ link: reply.link,
+												QuestionId: id, 
+												description: reply.description, 
+												UserId: reply.userId 
+											});
 });
 
 app.post('/newuser', function(req, res) {
 	var user = req.body;
-		console.log(req.body);
 	models.User.create({ username: user.username, 
 											 firstname: user.firstname, 
 											 lastname: user.lastname, 
@@ -92,6 +93,13 @@ app.post('/newuser', function(req, res) {
 											 password: user.password 
 											});
 });
+
+app.get('/user/:userid', function(req, res) {
+	var user = req.body;
+	models.User.find( {where: {id: req.params.userid}} ).complete(function(err, user) {
+		res.send({"firstname": user.firstname, "username": user.username})
+	})
+})
 
 
 module.exports = app
