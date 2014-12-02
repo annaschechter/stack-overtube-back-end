@@ -25,13 +25,20 @@ app.post('/askquestion', function(req, res) {
 	var question = req.body;
 	var username = req.body.author;
 	models.User.find({where:{username: username}}).complete(function(err, user) {
-		models.Question.create({ title: question.title,
-														 description: question.description, 
-														 codeSnippet: question.codeSnippet, 
-														 githubRepo: question.githubRepo, 
-														 votes: question.votes,
-														 UserId: user.id
-														});
+		if(!!err) {
+			res.send(err)
+		} else if(!user) {
+			res.send("No user found!")
+		} else {
+				models.Question.create({ title: question.title,
+													 description: question.description, 
+													 codeSnippet: question.codeSnippet, 
+													 githubRepo: question.githubRepo, 
+													 votes: question.votes,
+													 UserId: user.id
+													});
+				res.send("Question added successfully");
+			}
 	});
 });
 
@@ -55,12 +62,18 @@ app.post('/postreply', function(req, res) {
 	var reply = req.body;
 	var username = req.body.author;
 	models.User.find( {where:{username: username}} ).complete(function(err, user) {
-		models.Reply.create({ link: reply.link,
-													QuestionId: reply.questionId, 
-													UserId: user.id 
-												});
+		if(!!err){
+			res.send(err)
+		} else if(!user) {
+			res.send("No user found!")
+		} else {
+			models.Reply.create({ link: reply.link,
+														QuestionId: reply.questionId, 
+														UserId: user.id 
+													});
+		res.send("Reply saved successfully");
+		}
 	});
-
 });
 
 app.post('/newuser', function(req, res) {
