@@ -42,7 +42,6 @@ app.post('/upload', function(req, res) {
 			var params = { Bucket: 'annas-second-test-bucket',  Key: 'pablofile.txt', Body: fs.readFileSync(__dirname + '/views/' + filename)}
 			var amazon = fs.createWriteStream(__dirname + '/views/' + filename);
 			s3.putObject(params).createReadStream().pipe(amazon);
-			console.log(amazon);
 		});
 	});
 });
@@ -50,9 +49,9 @@ app.post('/upload', function(req, res) {
 app.post('/askquestion', function(req, res) {
 	var question = req.body;
 	models.Question.create({ title: question.title,
-													 description: question.description, 
-													 codeSnippet: question.codeSnippet, 
-													 githubRepo: question.githubRepo, 
+													 description: question.description,
+													 codeSnippet: question.codeSnippet,
+													 githubRepo: question.githubRepo,
 													 votes: question.votes,
 													 UserId: question.userId,
 													});
@@ -78,28 +77,48 @@ app.post('/postreply/:questionid', function(req, res) {
 	var reply = req.body;
 	var id = req.params.questionid;
 	models.Reply.create({ link: reply.link,
-												QuestionId: id, 
-												description: reply.description, 
-												UserId: reply.userId 
+												QuestionId: id,
+												description: reply.description,
+												UserId: reply.userId
 											});
 });
 
 app.post('/newuser', function(req, res) {
 	var user = req.body;
-	models.User.create({ username: user.username, 
-											 firstname: user.firstname, 
-											 lastname: user.lastname, 
-											 email: user.email, 
-											 password: user.password 
+	models.User.create({ username: user.username,
+											 firstname: user.firstname,
+											 lastname: user.lastname,
+											 email: user.email,
+											 password: user.password
 											});
+});
+
+app.post('/gitlogin', function(req, res) {
+	var gitprofile = req.body;
+	console.log(gitprofile.githubid)
+	models.User.find( {where: {githubid: gitprofile.githubid}}).complete(function(err, user) {
+				if(!!err){
+					console.log(err)
+				}else if(!user){
+			models.User.create({
+	 										 githubid: gitprofile.githubid,
+	 										 login: gitprofile.login
+	 										 });
+			res.send(gitprofile.login)
+
+				}else{
+			res.send(user.login)
+			console.log(err)
+		}
+	});
 });
 
 app.get('/user/:userid', function(req, res) {
 	var user = req.body;
 	models.User.find( {where: {id: req.params.userid}} ).complete(function(err, user) {
 		res.send({"firstname": user.firstname, "username": user.username})
-	})
-})
+	});
+});
 
 
 module.exports = app
