@@ -2,12 +2,6 @@ var app = require('express')();
 var server = require('http').createServer(app);
 var bodyParser = require('body-parser');
 var models = require('./models');
-var fs = require('fs');
-var AWS = require('aws-sdk');
-var uuid = require('node-uuid');
-var busboy = require('connect-busboy');
-var s3 = new AWS.S3();
-var keyName = "interface.js"
 
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -21,41 +15,22 @@ app.use(bodyParser.urlencoded({
 	extended: true
 }))
 
-app.set('view engine', 'ejs');
-app.set('views',__dirname + '/views');
-app.use(busboy());
-
 app.get('/', function(req, res) {
 	res.render('index');
 });
 
-app.post('/upload', function(req, res) {
-	var fstream;
-	// console.log(req.busboy);
-	req.pipe(req.busboy);
-	req.busboy.on('file', function(fieldname, file, filename) {
-		console.log("uploading: "+filename)
-		fstream = fs.createWriteStream(__dirname + '/views/' + filename);
-		file.pipe(fstream);
-		fstream.on('close', function() {
-				console.log("Its done")
-			var params = { Bucket: 'annas-second-test-bucket',  Key: 'pablofile.txt', Body: fs.readFileSync(__dirname + '/views/' + filename)}
-			var amazon = fs.createWriteStream(__dirname + '/views/' + filename);
-			s3.putObject(params).createReadStream().pipe(amazon);
-			console.log(amazon);
-		});
-	});
-});
-
 app.post('/askquestion', function(req, res) {
 	var question = req.body;
-	models.Question.create({ title: question.title,
-													 description: question.description, 
-													 codeSnippet: question.codeSnippet, 
-													 githubRepo: question.githubRepo, 
-													 votes: question.votes,
-													 UserId: question.userId,
-													});
+	var username = req.body.author;
+	models.User.find({where:{username: username}}).complete(function(err, user) {
+		models.Question.create({ title: question.title,
+														 description: question.description, 
+														 codeSnippet: question.codeSnippet, 
+														 githubRepo: question.githubRepo, 
+														 votes: question.votes,
+														 UserId: user.id
+														});
+	});
 });
 
 app.get('/allquestions', function(req, res) {
@@ -74,14 +49,16 @@ app.get('/question/:questionid', function(req, res) {
 
 });
 
-app.post('/postreply/:questionid', function(req, res) {
+app.post('/postreply', function(req, res) {
 	var reply = req.body;
-	var id = req.params.questionid;
-	models.Reply.create({ link: reply.link,
-												QuestionId: id, 
-												description: reply.description, 
-												UserId: reply.userId 
-											});
+	var username = req.body.author;
+	models.User.find( {where:{username: username}} ).complete(function(err, user) {
+		models.Reply.create({ link: reply.link,
+													QuestionId: reply.questionId, 
+													UserId: user.id 
+												});
+	});
+
 });
 
 app.post('/newuser', function(req, res) {
