@@ -31,10 +31,10 @@ app.post('/askquestion', function(req, res) {
 			res.send("No user found!")
 		} else {
 				models.Question.create({ title: question.title,
-													 description: question.description, 
-													 codeSnippet: question.codeSnippet, 
-													 githubRepo: question.githubRepo, 
-													 votes: question.votes,
+													 description: question.description,
+													 codeSnippet: question.codeSnippet,
+													 githubRepo: question.githubRepo,
+													 votes: 0,
 													 UserId: user.id
 													});
 				res.send("Question added successfully");
@@ -61,6 +61,7 @@ app.get('/question/:questionid', function(req, res) {
 app.post('/postreply', function(req, res) {
 	var reply = req.body;
 	var username = req.body.author;
+
 	models.User.find( {where:{username: username}} ).complete(function(err, user) {
 		if(!!err){
 			res.send(err)
@@ -68,8 +69,9 @@ app.post('/postreply', function(req, res) {
 			res.send("No user found!")
 		} else {
 			models.Reply.create({ link: reply.link,
-														QuestionId: reply.questionId, 
-														UserId: user.id 
+														QuestionId: reply.questionId,
+														UserId: user.id,
+														votes: 0
 													});
 		res.send("Reply saved successfully");
 		}
@@ -78,11 +80,11 @@ app.post('/postreply', function(req, res) {
 
 app.post('/newuser', function(req, res) {
 	var user = req.body;
-	models.User.create({ username: user.username, 
-											 firstname: user.firstname, 
-											 lastname: user.lastname, 
-											 email: user.email, 
-											 password: user.password 
+	models.User.create({ username: user.username,
+											 firstname: user.firstname,
+											 lastname: user.lastname,
+											 email: user.email,
+											 password: user.password
 											});
 });
 
@@ -91,6 +93,42 @@ app.get('/user/:userid', function(req, res) {
 	models.User.find( {where: {id: req.params.userid}} ).complete(function(err, user) {
 		res.send({"firstname": user.firstname, "username": user.username})
 	})
+})
+
+app.post('/upquestionvotes/:questionid', function(req, res){
+	var questionId = req.params.questionid;
+	models.Question.find( {where:{id: questionId}} ).complete(function(err, question) {
+		if(!!err){
+			res.send(err)
+		} else if(!question) {
+			res.send("No question found!")
+		} else {
+			question.updateAttributes({
+				votes: question.votes + 1
+			}).success(function(err, resp) {
+				res.send("Vote saved successfully");
+			})
+		}
+
+	});
+})
+
+app.post('/upreplyvotes/:replyid', function(req, res){
+	var replyId = req.params.replyid;
+	models.Reply.find( {where:{id: replyId}} ).complete(function(err, reply) {
+		if(!!err){
+			res.send(err)
+		} else if(!reply) {
+			res.send("No reply found!")
+		} else {
+			reply.updateAttributes({
+				votes: reply.votes + 1
+			}).success(function(err, resp) {
+				res.send("Vote saved successfully");
+			})
+		}
+
+	});
 })
 
 
