@@ -35,6 +35,7 @@ app.post('/askquestion', function(req, res) {
 													 codeSnippet: question.codeSnippet,
 													 githubRepo: question.githubRepo,
 													 votes: 0,
+													 views: 0,
 													 UserId: user.id
 													});
 				res.send("Question added successfully");
@@ -125,11 +126,29 @@ app.post('/upreplyvotes/:replyid', function(req, res){
 				votes: reply.votes + 1
 			}).success(function(err, resp) {
 				res.send("Vote saved successfully");
-			})
+			});
 		}
-
 	});
-})
+});
+
+app.post('/upquestionviews/:questionid', function(req, res){
+	var questionId = req.params.questionid;
+	models.Question.find( {where:{id: questionId}} ).complete(function(err, question) {
+		if(!!err){
+			res.send(err)
+		} else if(!question) {
+			res.send("No question found!")
+		} else {
+			question.updateAttributes({
+				views: question.views + 1
+			}).success(function(err, resp) {
+				res.send("A view saved successfully");
+			});
+		}
+	});
+});
+
+
 
 
 module.exports = app

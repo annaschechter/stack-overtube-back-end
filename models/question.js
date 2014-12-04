@@ -5,6 +5,7 @@ module.exports = function(sequelize, DataTypes) {
 	  codeSnippet: DataTypes.TEXT,
 	  githubRepo: DataTypes.STRING,
 	  votes: DataTypes.INTEGER,
+	  views: DataTypes.INTEGER
 	}, {
 		classMethods: {
 			associate: function(models) {
